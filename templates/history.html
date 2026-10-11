@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice History</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f5f9;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #00000015;
+            overflow-x: auto;
+        }
+
+        h1 {
+            color: #2456a6;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #2456a6;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f1f5fb;
+        }
+
+        a {
+            color: #2456a6;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        
+<form action="{{ url_for('search') }}" method="GET">
+    <input
+        type="text"
+        name="customer"
+        placeholder="Search by customer name..."
+        value="{{ search_query|default('') }}"
+        style="padding:10px; width:250px;"
+    >
+    <button type="submit"
+            style="padding:10px 15px; cursor:pointer;">
+        Search
+    </button>
+
+    <a href="{{ url_for('history') }}">Show All</a>
+</form>
+
+        <h1>Invoice History</h1>
+
+        {% if invoices %}
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price (Rs.)</th>
+                <th>Total (Rs.)</th>
+                <th>Invoice Date</th>
+                <th>Action</th>
+            </tr>
+
+            {% for invoice in invoices %}
+            <tr>
+                <td>{{ invoice["id"] }}</td>
+                <td>{{ invoice["customer"] }}</td>
+                <td>
+{% for item in invoice["items"] %}
+    <div>
+        {{ item["product"] }} -
+        Qty: {{ item["quantity"] }} -
+        Rs. {{ "%.2f"|format(item["subtotal"]) }}
+    </div>
+{% endfor %}
+                </td>
+                <td>{{ invoice["quantity"] }}</td>
+                <td>{{ "%.2f"|format(invoice["price"]) }}</td>
+                <td>{{ "%.2f"|format(invoice["total"]) }}</td>
+                <td>{{ invoice["invoice_date"] or "Not available" }}</td>
+                <td>
+    
+<form action="{{ url_for('delete', invoice_id=invoice['id']) }}"
+      method="POST"
+      onsubmit="return confirm('Delete this invoice permanently?');">
+    <button type="submit"
+            style="background:#c62828; color:white; border:0; padding:8px 12px; cursor:pointer;">
+        Delete
+    </button>
+</form>
+
+</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        {% else %}
+        <p class="empty">No invoices saved yet. Create your first invoice!</p>
+        {% endif %}
+
+        <a class="back" href="/">← Back to Invoice Generator</a>
+    </div>
+</body>
+</html>
